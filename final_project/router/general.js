@@ -32,63 +32,43 @@ public_users.get("/", async function (req, res) {
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', async function (req, res) {
+public_users.get('/isbn/:isbn', function (req, res) {
   const isbn = req.params.isbn;
-
-  if (!isbn) {
-    return res.status(400).json({ message: "Invalid ISBN" });
-  }
-
-  try {
-    const response = await axios.get('http://localhost:3000/books');
-    const books = response.data;
-
-    res.json(books[isbn]);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching book data" });
-  }
+  new Promise((resolve, reject) => {
+    if (books[isbn]) {
+      resolve(books[isbn]);
+    } else {
+      reject({ status: 404, message: "Book not found" });
+    }
+  })
+    .then((book) => res.send(JSON.stringify(book, null, 4)))
+    .catch((err) => res.status(err.status || 500).json({ message: err.message }));
 });
-  
+
 // Get book details based on author
-public_users.get('/author/:author', async function (req, res) {
+public_users.get('/author/:author', function (req, res) {
   const author = req.params.author;
-
-  if (!author) {
-    return res.status(400).json({ message: "Invalid author" });
-  }
-
-  try {
-    const response = await axios.get('http://localhost:5000/');
-    const books = response.data;
-
-    const filteredBooks = books.filter(book => book.author.toLowerCase() === author.toLowerCase());
-    res.json(filteredBooks);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching book data" });
-  }
+  new Promise((resolve, reject) => {
+    const bookList = Object.values(books);
+    const filteredBooks = bookList.filter((book) => book.author === author);
+    resolve(filteredBooks);
+  })
+    .then((filteredBooks) => res.send(JSON.stringify(filteredBooks, null, 4)));
 });
-  
+
 // Get book details based on title
-public_users.get('/title/:title', async function (req, res) {
+public_users.get('/title/:title', function (req, res) {
   const title = req.params.title;
-
-  if (!title) {
-    return res.status(400).json({ message: "Invalid title" });
-  }
-
-  try {
-    const response = await axios.get('http://localhost:5000/');
-    const books = response.data;
-
-    const filteredBooks = books.filter(book => book.title.toLowerCase() === title.toLowerCase());
-    res.json(filteredBooks);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching book data" });
-  }
+  new Promise((resolve, reject) => {
+    const bookList = Object.values(books);
+    const filteredBooks = bookList.filter((book) => book.title === title);
+    resolve(filteredBooks);
+  })
+    .then((filteredBooks) => res.send(JSON.stringify(filteredBooks, null, 4)));
 });
 
 //  Get book review
-public_users.get('/review/:isbn',function (req, res) {
+public_users.get('/review/:isbn', function (req, res) {
   let book = books[req.params.isbn];
   if (!book) {
     return res.status(400).json({message: "Invalid ISBN"});
